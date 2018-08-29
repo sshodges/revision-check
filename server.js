@@ -23,8 +23,6 @@ var corsOptions =
 
 app.use(cors(corsOptions));
 
-app.use(express.static('public'));
-
 //Main Api Route
 app.get('/api', function (req, res) {
     res.send('Welcome to the Revision Check API');
