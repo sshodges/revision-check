@@ -6,6 +6,7 @@ var bcrypt = require('bcryptjs');
 var middleware = require('./middleware.js')(db);
 var shortid = require('shortid32');
 var cors = require('cors');
+var generator = require('generate-password');
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -28,9 +29,102 @@ app.get('/api', function (req, res) {
     res.send('Welcome to the Revision Check API');
 });
 
-//FOLDERS -------------------------------------------------------------------------------
+//USERS ------------------------------------------------------------------------
+//POST Sign Up
+app.post('/v1/users', function(req, res) {
+    var body = _.pick(req.body,"email", "password");
+    body.confirmEmailCode = generator.generate({
+        length: 15,
+        numbers: true
+    });
+    db.user.create(body).then(function (user) {
+        res.json(user.toPublicJSON());
+    }, function(e){
+        res.status(400).json(e);
+    });
+});
+
+//POST Login
+app.post('/v1/users/login', function(req, res) {
+    var body = _.pick(req.body,"email", "password");
+
+    db.user.isValid(body).then(function (user) {
+        var token = user.generateToken('authentication');
+        if(token){
+            res.header('Auth', token).json(user.toPublicJSON());
+        } else {
+            res.status(401).send();
+        }
+    }, function (e) {
+        res.status(401).send();
+    });
+});
+//POST Add Sub User
+app.post('/v1/users/subuser', middleware.requireAuthentication, function(req, res) {
+    var body = _.pick(req.body,"email");
+    var attributes = {};
+
+    if (body.hasOwnProperty('email')){
+        attributes.email = body.email;
+        attributes.parentId = req.user.get('id');
+        attributes.password = generator.generate({
+            length: 20,
+            numbers: true
+        });
+        attributes.confirmSubuserCode = generator.generate({
+            length: 15,
+            numbers: true
+        });
+    }
+
+    db.user.create(attributes).then(function (user) {
+        res.json(user.toPublicJSON());
+    }, function(e){
+        res.status(400).json(e);
+    });
+});
+//POST Resend Sub User Email
+//PUT Confirm Sub User Account
+app.put('/v1/users/subuser/confirm/:confirmcode', function (req, res) {
+
+    var attributes = {};
+    attributes.confirmSubuserCode =  null;
+
+    db.user.findOne({
+        where: {
+            confirmSubuserCode: req.params.confirmcode,
+        }
+    }).then(function (user) {
+        if (user){
+            user.update(attributes).then(function (user) {
+                res.json(user.toJSON());
+            }, function(e){
+                res.status(400).json(e);
+            });
+        } else {
+            res.status(404).send();
+        }
+    }, function (e) {
+        res.status(500).send();
+    });
+});
+//PUT Update Sub User (Delete, Company)
+//PUT Confirm Email on New Account
+//POST Forgot Password
+//PUT Confirm Forgot Password
+//PUT Change Password
+//PUT Update User Details
+
+
+
+
+
+
+
+
+//FOLDERS ----------------------------------------------------------------------
 //GET All Folders with :parent
-app.get('/api/folders/:parent', middleware.requireAuthentication, function (req, res) {
+app.get('/v1/folders/parent/:parent', middleware.requireAuthentication, function (req, res) {
     var query =  req.query;
     var where = {
         userId: req.user.get('id'),
@@ -43,9 +137,23 @@ app.get('/api/folders/:parent', middleware.requireAuthentication, function (req,
         res.status(500).send();
     });
 });
+//GET All Folders with :id
+app.get('/v1/folders/:id', middleware.requireAuthentication, function (req, res) {
+    var query =  req.query;
+    var where = {
+        userId: req.user.get('id'),
+        id: parseInt(req.params.id, 10)
+    };
 
-//POST Folder
-app.post('/api/folders', middleware.requireAuthentication, function(req, res) {
+    db.folder.findAll({where: where}).then(function (folders){
+        res.json(folders);
+    }, function (e){
+        res.status(500).send();
+    });
+});
+//GET Search Folder Names for {searchTerm}
+//POST Add New Folder
+app.post('/v1/folders', middleware.requireAuthentication, function(req, res) {
     var body = _.pick(req.body,"name");
     var attributes = {};
 
@@ -64,9 +172,8 @@ app.post('/api/folders', middleware.requireAuthentication, function(req, res) {
         res.status(400).json(e);
     });
 });
-
-//PUT Document Name
-app.put('/api/folders/name/:id', middleware.requireAuthentication, function (req, res) {
+//PUT Edit Folder (Name, Parent)
+app.put('/v1/folders/:id', middleware.requireAuthentication, function (req, res) {
     var folderId =  parseInt(req.params.id, 10);
     var name = _.pick(req.name,"name");
     var attributes = {};
@@ -94,18 +201,11 @@ app.put('/api/folders/name/:id', middleware.requireAuthentication, function (req
         res.status(500).send();
     });
 });
-
-//PUT Folders Name
-app.put('/api/folders/parent/:id', middleware.requireAuthentication, function (req, res) {
+//DELETE Delete Folder
+app.delete('/v1/folders/:id', middleware.requireAuthentication, function (req, res) {
     var folderId =  parseInt(req.params.id, 10);
-    var parent = _.pick(req.parent,"parent");
-    var attributes = {};
 
-    if (parent.hasOwnProperty('parent')){
-        attributes.parent = body.parent;
-    }
-
-    db.folder.findOne({
+    db.folder.destroy({
         where: {
             id: folderId,
             userId: req.user.get('id')
@@ -124,11 +224,9 @@ app.put('/api/folders/parent/:id', middleware.requireAuthentication, function (r
         res.status(500).send();
     });
 });
-
-//DOCUMENTS -------------------------------------------------------------------------------
-
+//DOCUMENTS --------------------------------------------------------------------
 //GET All Documents with :parent
-app.get('/api/documents/:parent', middleware.requireAuthentication, function (req, res) {
+app.get('/v1/documents/:parent', middleware.requireAuthentication, function (req, res) {
     var query =  req.query;
     var where = {
         userId: req.user.get('id'),
@@ -141,9 +239,8 @@ app.get('/api/documents/:parent', middleware.requireAuthentication, function (re
         res.status(500).send();
     });
 });
-
-//GET One Document
-app.get('/api/documents/:id', middleware.requireAuthentication, function (req, res) {
+//GET All Documents with :id
+app.get('/v1/documents/:id', middleware.requireAuthentication, function (req, res) {
     var documentId =  parseInt(req.params.id, 10);
 
     db.document.findOne({
@@ -161,9 +258,10 @@ app.get('/api/documents/:id', middleware.requireAuthentication, function (req, r
         res.status(500).send();
     });
 });
-
-//POST Document
-app.post('/api/documents', middleware.requireAuthentication, function(req, res) {
+//GET Search Document Names for {searchTerm}
+//GET Search Document & Folder Names for {searchTerm}
+//POST Add New Document
+app.post('/v1/documents', middleware.requireAuthentication, function(req, res) {
     var body = _.pick(req.body,"name", "parent");
     var attributes = {};
 
@@ -189,9 +287,8 @@ app.post('/api/documents', middleware.requireAuthentication, function(req, res) 
         res.status(400).json(e);
     });
 });
-
-//PUT Document Name
-app.put('/api/documents/name/:id', middleware.requireAuthentication, function (req, res) {
+//PUT Update Document (Name, Status, Parent, etc)
+app.put('/v1/documents/:id', middleware.requireAuthentication, function (req, res) {
     var documentId =  parseInt(req.params.id, 10);
     var name = _.pick(req.name,"name");
     var attributes = {};
@@ -220,39 +317,9 @@ app.put('/api/documents/name/:id', middleware.requireAuthentication, function (r
     });
 });
 
-//PUT Document Parent
-app.put('/api/documents/parent/:id', middleware.requireAuthentication, function (req, res) {
-    var documentId =  parseInt(req.params.id, 10);
-    var parent = _.pick(req.parent,"parent");
-    var attributes = {};
-
-    if (parent.hasOwnProperty('parent')){
-        attributes.parent = body.parent;
-    }
-
-    db.document.findOne({
-        where: {
-            id: documentId,
-            userId: req.user.get('id')
-        }
-    }).then(function (document) {
-        if (document){
-            document.update(attributes).then(function (document) {
-                res.json(document.toJSON());
-            }, function(e){
-                res.status(400).json(e);
-            });
-        } else {
-            res.status(404).send();
-        }
-    }, function (e) {
-        res.status(500).send();
-    });
-});
-
-//REVISIONS -------------------------------------------------------------------------------
-//GET Revisions
-app.get('/api/revisions/:documentId', middleware.requireAuthentication, function (req, res) {
+//REVISIONS --------------------------------------------------------------------
+//GET Revisions by :documentId
+app.get('/v1/revisions/:documentId', middleware.requireAuthentication, function (req, res) {
     var documentId =  parseInt(req.params.documentId, 10);
     var where = {
         documentId: documentId,
@@ -265,23 +332,9 @@ app.get('/api/revisions/:documentId', middleware.requireAuthentication, function
         res.status(500).send();
     });
 });
-
-//GET Revision by Revcode
-app.get('/api/revcodes/:revcode', cors(), function (req, res) {
-    var revCode =  req.params.revcode;
-    var where = {
-        uniqueCode: revCode
-    };
-
-    db.revision.findOne({where: where}).then(function (revision){
-        res.json(revision);
-    }, function (e){
-        res.status(500).send();
-    });
-});
-
-//POST Revision
-app.post('/api/revisions/:documentId', middleware.requireAuthentication, function(req, res) {
+//PUT Update Revision
+//POST Add New Revision
+app.post('/v1/revisions/:documentId', middleware.requireAuthentication, function(req, res) {
     var documentId =  parseInt(req.params.documentId, 10);
     var uCode = shortid.generate();
     var body = _.pick(req.body,"name");
@@ -355,37 +408,22 @@ app.post('/api/revisions/:documentId', middleware.requireAuthentication, functio
     });
 
 });
+//GET Search Revisions by {revcode}
+app.get('/v1/revcodes/:revcode', cors(), function (req, res) {
+    var revCode =  req.params.revcode;
+    var where = {
+        uniqueCode: revCode
+    };
 
-
-//USER Section
-//POST User (SIGN UP)
-app.post('/api/users', function(req, res) {
-    var body = _.pick(req.body,"email", "password");
-    db.user.create(body).then(function (user) {
-        res.json(user.toPublicJSON());
-    }, function(e){
-        res.status(400).json(e);
+    db.revision.findOne({where: where}).then(function (revision){
+        res.json(revision);
+    }, function (e){
+        res.status(500).send();
     });
 });
 
-//POST User Login
-app.post('/api/users/login', function(req, res) {
-    var body = _.pick(req.body,"email", "password");
-
-    db.user.isValid(body).then(function (user) {
-        var token = user.generateToken('authentication');
-        if(token){
-            res.header('Auth', token).json(user.toPublicJSON());
-        } else {
-            res.status(401).send();
-        }
-    }, function (e) {
-        res.status(401).send();
-    });
-
-});
-
-//POST User Log Off
+//Misc. ------------------------------------------------------------------------
+//GET Find All Breadcrumbs
 
 
 //Run App

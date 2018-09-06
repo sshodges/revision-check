@@ -13,6 +13,35 @@ module.exports = function (sequelize, DataTypes) {
                 isEmail: true
             }
         },
+        parentId: {
+          type: DataTypes.INTEGER,
+          validate: {
+              len: [1, 250]
+          }
+        },
+        company: {
+            type: DataTypes.STRING
+        },
+        firstName: {
+            type: DataTypes.STRING
+        },
+        lastName: {
+            type: DataTypes.STRING
+        },
+        active: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
+        },
+        confirmEmailCode: {
+            type: DataTypes.STRING
+        },
+        confirmForgotCode: {
+            type: DataTypes.STRING
+        },
+        confirmSubuserCode: {
+            type: DataTypes.STRING
+        },
         salt: {
             type: DataTypes.STRING
         },
@@ -49,7 +78,7 @@ module.exports = function (sequelize, DataTypes) {
                         return reject();
                     }
                     body.email = body.email.toLowerCase();
-                    
+
                     user.findOne({
                         where: {
                             email: body.email
@@ -60,7 +89,7 @@ module.exports = function (sequelize, DataTypes) {
                         }
 
                         resolve(user);
-                      
+
                     }, function (e) {
                         reject();
                     });
@@ -91,7 +120,7 @@ module.exports = function (sequelize, DataTypes) {
         instanceMethods: {
             toPublicJSON: function () {
                 var json = this.toJSON();
-                return _.pick(json, 'id', 'email', 'createdAt', 'updatedAt');
+                return _.pick(json, 'id', 'parentId', 'firstName', 'lastName', 'company', 'email', 'createdAt', 'updatedAt');
             },
             generateToken: function (type) {
                 if(!_.isString(type)){
@@ -104,7 +133,7 @@ module.exports = function (sequelize, DataTypes) {
                     var token = jwt.sign({
                         token: encryptedData
                     }, 'qwerty123');
-                    
+
                     return token;
                 } catch (e) {
                     return undefined;
@@ -112,6 +141,6 @@ module.exports = function (sequelize, DataTypes) {
             }
         }
     });
-    
+
     return user;
 };
