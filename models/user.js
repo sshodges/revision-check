@@ -95,6 +95,28 @@ module.exports = function (sequelize, DataTypes) {
                     });
                 });
             },
+            isValidChange: function (body) {
+                return new Promise(function (resolve, reject) {
+                    if (typeof body.oldPassword !== 'string' || typeof body.newPassword !== 'string'){
+                        return reject();
+                    }
+
+                    user.findOne({
+                        where: {
+                            id: body.id
+                       }
+                    }).then(function (user) {
+                        if (!user || !bcrypt.compareSync(body.oldPassword, user.get('password_hash'))){
+                            return reject();
+                        }
+
+                        resolve(user);
+
+                    }, function (e) {
+                        reject();
+                    });
+                });
+            },
             findByToken: function (token) {
                 return new Promise (function (resolve, reject){
                     try {

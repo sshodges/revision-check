@@ -1,4 +1,4 @@
-express = require('express');
+var express = require('express');
 var bodyParser = require('body-parser');
 var _ = require('underscore');
 var db = require('./db.js');
@@ -13,8 +13,7 @@ var PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 app.use(express.static(__dirname + '/public'));
-var corsOptions =
-{
+var corsOptions = {
     "origin": "*",
     "methods": "GET,HEAD,PUT,PATCH,POST, DELETE",
     "preflightContinue": true,
@@ -43,7 +42,6 @@ app.post('/v1/users', function(req, res) {
         res.status(400).json(e);
     });
 });
-
 //POST Login
 app.post('/v1/users/login', function(req, res) {
     var body = _.pick(req.body,"email", "password");
@@ -75,13 +73,21 @@ app.post('/v1/users/subuser', middleware.requireAuthentication, function(req, re
             length: 15,
             numbers: true
         });
+
+        db.user.findOne({where: {id: attributes.parentId}}).then(function (user){
+            attributes.company = user.company;
+        }, function (e){
+            res.status(500).send();
+        }).then(function () {
+          db.user.create(attributes).then(function (user) {
+              res.json(user.toPublicJSON());
+          }, function(e){
+              res.status(400).json(e);
+          });
+        });
     }
 
-    db.user.create(attributes).then(function (user) {
-        res.json(user.toPublicJSON());
-    }, function(e){
-        res.status(400).json(e);
-    });
+
 });
 //POST Resend Sub User Email
 //PUT Confirm Sub User Account
@@ -97,7 +103,7 @@ app.put('/v1/users/subuser/confirm/:confirmcode', function (req, res) {
     }).then(function (user) {
         if (user){
             user.update(attributes).then(function (user) {
-                res.json(user.toJSON());
+                res.json(user.toPublicJSON());
             }, function(e){
                 res.status(400).json(e);
             });
@@ -109,12 +115,147 @@ app.put('/v1/users/subuser/confirm/:confirmcode', function (req, res) {
     });
 });
 //PUT Update Sub User (Delete, Company)
-//PUT Confirm Email on New Account
-//POST Forgot Password
-//PUT Confirm Forgot Password
-//PUT Change Password
-//PUT Update User Details
+app.put('/v1/users/subuser/:id', middleware.requireAuthentication, function (req, res) {
+    var body = _.pick(req.body, "company", "firstName", "lastName");
 
+    db.user.findOne({
+        where: {
+            id: req.params.id,
+        }
+    }).then(function (user) {
+        if (user){
+            user.update(body).then(function (user) {
+                res.json(user.toPublicJSON());
+            }, function(e){
+                res.status(400).json(e);
+            });
+        } else {
+            res.status(404).send();
+        }
+    }, function (e) {
+        res.status(500).send();
+    });
+});
+//PUT Confirm Email on New Account
+app.put('/v1/users/confirm/:confirmcode', function (req, res) {
+
+    var attributes = {};
+    attributes.confirmEmailCode =  null;
+
+    db.user.findOne({
+        where: {
+            confirmEmailCode: req.params.confirmcode,
+        }
+    }).then(function (user) {
+        if (user){
+            user.update(attributes).then(function (user) {
+                res.json(user.toPublicJSON());
+            }, function(e){
+                res.status(400).json(e);
+            });
+        } else {
+            res.status(404).send();
+        }
+    }, function (e) {
+        res.status(500).send();
+    });
+});
+//POST Forgot Password
+app.put('/v1/users/forgotpassword', function(req, res) {
+    var body = _.pick(req.body,"email");
+    var attributes = {};
+    attributes.confirmForgotCode = generator.generate({
+        length: 20,
+        numbers: true
+    });
+
+    db.user.findOne({
+        where: {
+            email: body.email,
+        }
+    }).then(function (user) {
+        if (user){
+            user.update(attributes).then(function (user) {
+                res.json(user.toPublicJSON());
+            }, function(e){
+                res.status(400).json(e);
+            });
+        } else {
+            res.status(404).send();
+        }
+    }, function (e) {
+        res.status(500).send();
+    });
+});
+//PUT Confirm Forgot Password
+app.put('/v1/users/forgot-confirm/:confirmcode', function (req, res) {
+
+    var attributes = {};
+    attributes.confirmForgotCode =  null;
+
+    db.user.findOne({
+        where: {
+            confirmForgotCode: req.params.confirmcode,
+        }
+    }).then(function (user) {
+        if (user){
+            user.update(attributes).then(function (user) {
+                res.json(user.toPublicJSON());
+            }, function(e){
+                res.status(400).json(e);
+            });
+        } else {
+            res.status(404).send();
+        }
+    }, function (e) {
+        res.status(500).send();
+    });
+});
+//PUT Change Password
+app.put('/v1/users/change-password', middleware.requireAuthentication, function(req, res) {
+    var body = _.pick(req.body,"oldPassword", "newPassword");
+    body.id = req.user.get('id');
+    attributes = {};
+    attributes.password = body.newPassword;
+
+    db.user.isValidChange(body).then(function (user) {
+        user.update(attributes).then(function(user){
+          res.json(user.toPublicJSON());
+        })
+    }, function (e) {
+        res.status(401).send();
+    });
+
+
+
+});
+//PUT Update User Details
+app.put('/v1/users', middleware.requireAuthentication, function (req, res) {
+    var body = _.pick(req.body, "company", "firstName", "lastName");
+
+    db.user.findOne({
+        where: {
+            id: req.user.get('id')
+        }
+    }).then(function (user) {
+        if (user){
+            user.update(body).then(function (user) {
+              res.json(user.toPublicJSON());
+              db.user.update(body,{
+                where : {
+                  parentId: req.user.get('id')
+                }
+              });
+            }, function(e){
+                res.status(400).json(e);
+            });
+        } else {
+            res.status(404).send();
+        }
+    }, function (e) {
+        res.status(500).send();
+    });
+});
 
 
 
