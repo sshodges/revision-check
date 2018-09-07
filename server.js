@@ -7,9 +7,24 @@ var middleware = require('./middleware.js')(db);
 var shortid = require('shortid32');
 var cors = require('cors');
 var generator = require('generate-password');
+const nodemailer = require('nodemailer');
 
 var app = express();
 var PORT = process.env.PORT || 3000;
+
+//Global Vars:
+let transporter = nodemailer.createTransport({
+    host: 'mail.revisioncheck.com',
+    port: 25,
+    secure: false, // true for 465, false for other ports
+    auth: {
+        user: "noreply@revisioncheck.com", // generated ethereal user
+        pass: "RevisionCheck2018" // generated ethereal password
+    },
+    tls: {
+      rejectUnauthorized: false
+    }
+});
 
 app.use(bodyParser.json());
 app.use(express.static(__dirname + '/public'));
@@ -37,7 +52,30 @@ app.post('/v1/users', function(req, res) {
         numbers: true
     });
     db.user.create(body).then(function (user) {
-        res.json(user.toPublicJSON());
+
+      nodemailer.createTestAccount((err, account) => {
+
+          var text =
+          "Welcome to <strong>Revision Check!</strong>\
+          <br><br>\
+          <p>Please click <a href='https://api.revisioncheck.com/v1/users/confirm/"+user.confirmEmailCode+"'>here</a> to verify your account</p>\
+          <p>Thank You</p>";
+          // setup email data with unicode symbols
+          let mailOptions = {
+              from: '"Sam Hodges" <sam@revisioncheck.com>', // sender address
+              to: 'sshodges@gmail.com', // list of receivers
+              subject: 'Welcome to Revision Check', // Subject line
+              html: text // html body
+          };
+
+          // send mail with defined transport object
+          transporter.sendMail(mailOptions, (error, info) => {
+              if (error) {
+                  return console.log(error);
+              }
+          });
+      });
+      res.json(user.toPublicJSON());
     }, function(e){
         res.status(400).json(e);
     });
@@ -80,7 +118,29 @@ app.post('/v1/users/subuser', middleware.requireAuthentication, function(req, re
             res.status(500).send();
         }).then(function () {
           db.user.create(attributes).then(function (user) {
-              res.json(user.toPublicJSON());
+            nodemailer.createTestAccount((err, account) => {
+
+                var text =
+                "You have been invited to join <strong>Revision Check</strong> by "+req.user.get('email')+"\
+                <br><br>\
+                <p>Please click <a href='https://api.revisioncheck.com/v1/subusers/confirm/"+user.confirmSubuserCode+"'>here</a> to verify your account</p>\
+                <p>Thank You</p>";
+                // setup email data with unicode symbols
+                let mailOptions = {
+                    from: '"Revision Check" <noreply@revisioncheck.com>', // sender address
+                    to: 'sshodges@gmail.com', // list of receivers
+                    subject: 'Invite to join Revision Check', // Subject line
+                    html: text // html body
+                };
+
+                // send mail with defined transport object
+                transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                });
+            });
+            res.json(user.toPublicJSON());
           }, function(e){
               res.status(400).json(e);
           });
@@ -90,6 +150,10 @@ app.post('/v1/users/subuser', middleware.requireAuthentication, function(req, re
 
 });
 //POST Resend Sub User Email
+app.post('/v1/users/subuser/resend-email', middleware.requireAuthentication, function(req, res) {
+
+
+});
 //PUT Confirm Sub User Account
 app.put('/v1/users/subuser/confirm/:confirmcode', function (req, res) {
 
@@ -256,6 +320,9 @@ app.put('/v1/users', middleware.requireAuthentication, function (req, res) {
         res.status(500).send();
     });
 });
+
+
+
 
 
 
