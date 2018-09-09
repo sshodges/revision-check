@@ -32,7 +32,6 @@ db.revision.belongsTo(db.document);
 db.user.hasMany(db.folder);
 db.user.hasMany(db.document);
 db.user.hasMany(db.revision);
-db.folder.hasMany(db.document);
 db.document.hasMany(db.revision);
 
 module.exports = db;

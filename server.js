@@ -12,7 +12,8 @@ const nodemailer = require('nodemailer');
 var app = express();
 var PORT = process.env.PORT || 3000;
 
-//Global Vars:
+//GLOBAL VARS
+//Nodemailer Settings
 let transporter = nodemailer.createTransport({
     host: 'mail.revisioncheck.com',
     port: 25,
@@ -25,9 +26,7 @@ let transporter = nodemailer.createTransport({
       rejectUnauthorized: false
     }
 });
-
-app.use(bodyParser.json());
-app.use(express.static(__dirname + '/public'));
+//Cors Settings
 var corsOptions = {
     "origin": "*",
     "methods": "GET,HEAD,PUT,PATCH,POST, DELETE",
@@ -36,6 +35,9 @@ var corsOptions = {
     "exposedHeaders":"Auth"
 };
 
+//USERS ------------------------------------------------------------------------
+app.use(bodyParser.json());
+app.use(express.static(__dirname + '/public'));
 app.use(cors(corsOptions));
 
 //Main Api Route
@@ -149,9 +151,70 @@ app.post('/v1/users/subuser', middleware.requireAuthentication, function(req, re
 
 
 });
+//GET All Sub User
+app.get('/v1/users/subuser', middleware.requireAuthentication, function(req, res) {
+  var where = {
+      parentId: req.user.get('id'),
+  };
+
+  db.user.findAll({where: where}).then(function (users){
+    usersArray =[]
+    users.forEach((user) => {
+      usersArray.push(user.toPublicJSON());
+    });
+    res.json(usersArray);
+  }, function (e){
+      res.status(500).send();
+  });
+});
 //POST Resend Sub User Email
 app.post('/v1/users/subuser/resend-email', middleware.requireAuthentication, function(req, res) {
+  var body = _.pick(req.body,"email");
+  var attributes = {};
 
+  if (body.hasOwnProperty('email')){
+
+      db.user.findOne({where: {email: body.email}}).then(function (user){
+        nodemailer.createTestAccount((err, account) => {
+
+            var text =
+            "You have been invited to join <strong>Revision Check</strong> by "+body.email+"\
+            <br><br>\
+            <p>Please click <a href='https://api.revisioncheck.com/v1/subusers/confirm/"+user.confirmSubuserCode+"'>here</a> to verify your account</p>\
+            <p>Thank You</p>";
+            // setup email data with unicode symbols
+            let mailOptions = {
+                from: '"Revision Check" <noreply@revisioncheck.com>', // sender address
+                to: 'sshodges@gmail.com', // list of receivers
+                subject: 'Invite to join Revision Check', // Subject line
+                html: text // html body
+            };
+
+            // send mail with defined transport object
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    return console.log(error);
+                }
+            });
+        });
+        res.json(user.toPublicJSON());
+      }, function (e){
+          res.status(500).send();
+      });
+  }
+});
+//GET Retrieve Sub User by :id
+app.get('/v1/users/subuser/:id', middleware.requireAuthentication, function(req, res) {
+  var where = {
+      id:  parseInt(req.params.id, 10),
+      parentId: req.user.get('id'),
+  };
+
+  db.user.findOne({where: where}).then(function (user){
+    res.json(user.toPublicJSON());
+  }, function (e){
+      res.status(500).send();
+  });
 
 });
 //PUT Confirm Sub User Account
@@ -225,7 +288,7 @@ app.put('/v1/users/confirm/:confirmcode', function (req, res) {
     });
 });
 //POST Forgot Password
-app.put('/v1/users/forgotpassword', function(req, res) {
+app.put('/v1/users/forgot-password', function(req, res) {
     var body = _.pick(req.body,"email");
     var attributes = {};
     attributes.confirmForgotCode = generator.generate({
@@ -240,6 +303,28 @@ app.put('/v1/users/forgotpassword', function(req, res) {
     }).then(function (user) {
         if (user){
             user.update(attributes).then(function (user) {
+                nodemailer.createTestAccount((err, account) => {
+
+                    var text =
+                    "Forgot Pass <strong>Revision Check!</strong>\
+                    <br><br>\
+                    <p>Please click <a href='https://api.revisioncheck.com/v1/users/forgot-password/"+user.confirmForgotCode+"'>here</a> to  </p>\
+                    <p>Thank You</p>";
+                    // setup email data with unicode symbols
+                    let mailOptions = {
+                        from: '"Sam Hodges" <sam@revisioncheck.com>', // sender address
+                        to: 'sshodges@gmail.com', // list of receivers
+                        subject: 'Forgot Password Revision Check', // Subject line
+                        html: text // html body
+                    };
+
+                    // send mail with defined transport object
+                    transporter.sendMail(mailOptions, (error, info) => {
+                        if (error) {
+                            return console.log(error);
+                        }
+                    });
+                });
                 res.json(user.toPublicJSON());
             }, function(e){
                 res.status(400).json(e);
@@ -252,7 +337,7 @@ app.put('/v1/users/forgotpassword', function(req, res) {
     });
 });
 //PUT Confirm Forgot Password
-app.put('/v1/users/forgot-confirm/:confirmcode', function (req, res) {
+app.put('/v1/users/forgot-password/:confirmcode', function (req, res) {
 
     var attributes = {};
     attributes.confirmForgotCode =  null;
@@ -321,15 +406,6 @@ app.put('/v1/users', middleware.requireAuthentication, function (req, res) {
     });
 });
 
-
-
-
-
-
-
-
-
-
 //FOLDERS ----------------------------------------------------------------------
 //GET All Folders with :parent
 app.get('/v1/folders/parent/:parent', middleware.requireAuthentication, function (req, res) {
@@ -360,21 +436,36 @@ app.get('/v1/folders/:id', middleware.requireAuthentication, function (req, res)
     });
 });
 //GET Search Folder Names for {searchTerm}
+app.get('/v1/folders/search/:searchTerm', middleware.requireAuthentication, function (req, res) {
+    var searchTerm = unescape(req.params.searchTerm);
+
+    db.folder.findAll({
+        limit: 10,
+        where: {
+          userId: req.user.get('id'),
+            name: db.Sequelize.where(db.Sequelize.fn('LOWER', db.Sequelize.col('name')), 'LIKE', '%' + searchTerm + '%')
+        }
+    }).then(function(folders){
+      res.json(folders);
+    }), function (e){
+        res.status(500).send();
+    };
+});
 //POST Add New Folder
 app.post('/v1/folders', middleware.requireAuthentication, function(req, res) {
-    var body = _.pick(req.body,"name");
+    var body = _.pick(req.body,"name", "parent");
     var attributes = {};
 
     if (body.hasOwnProperty('name')){
         attributes.name = body.name;
-        attributes.parent = parseInt(req.params.parent, 10);
+        attributes.parent = body.parent;
     }
 
     db.folder.create(attributes).then(function (folder) {
-        req.user.addDocument(folder).then(function () {
+        req.user.addFolder(folder).then(function () {
             return folder.reload();
-        }).then(function (updatedDocument) {
-            res.json(folder.toJSON());
+        }).then(function (updatedFolder) {
+            res.json(updatedFolder.toJSON());
         });
     }, function(e){
         res.status(400).json(e);
@@ -383,11 +474,14 @@ app.post('/v1/folders', middleware.requireAuthentication, function(req, res) {
 //PUT Edit Folder (Name, Parent)
 app.put('/v1/folders/:id', middleware.requireAuthentication, function (req, res) {
     var folderId =  parseInt(req.params.id, 10);
-    var name = _.pick(req.name,"name");
+    var body = _.pick(req.body,"name", "parent");
     var attributes = {};
 
-    if (name.hasOwnProperty('name')){
+    if (body.hasOwnProperty('name')){
         attributes.name = body.name;
+    }
+    if (body.hasOwnProperty('parent')){
+        attributes.parent = body.parent;
     }
 
     db.folder.findOne({
@@ -399,6 +493,7 @@ app.put('/v1/folders/:id', middleware.requireAuthentication, function (req, res)
         if (folder){
             folder.update(attributes).then(function (folder) {
                 res.json(folder.toJSON());
+                console.log(attributes);
             }, function(e){
                 res.status(400).json(e);
             });
@@ -420,11 +515,7 @@ app.delete('/v1/folders/:id', middleware.requireAuthentication, function (req, r
         }
     }).then(function (folder) {
         if (folder){
-            folder.update(attributes).then(function (folder) {
-                res.json(folder.toJSON());
-            }, function(e){
-                res.status(400).json(e);
-            });
+            res.json({"message":"Folder deleted"});
         } else {
             res.status(404).send();
         }
@@ -432,10 +523,26 @@ app.delete('/v1/folders/:id', middleware.requireAuthentication, function (req, r
         res.status(500).send();
     });
 });
+
 //DOCUMENTS --------------------------------------------------------------------
+//GET All DOCUMENTS
+app.get('/v1/documents', middleware.requireAuthentication, function (req, res) {
+    db.document.findAll({
+        where: {
+            userId: req.user.get('id')
+        }
+    }).then(function (documents) {
+        if (!!documents){
+            res.json(documents);
+        } else {
+            res.status(404).send();
+        }
+    }, function (e) {
+        res.status(500).send();
+    });
+});
 //GET All Documents with :parent
-app.get('/v1/documents/:parent', middleware.requireAuthentication, function (req, res) {
-    var query =  req.query;
+app.get('/v1/documents/parent/:parent', middleware.requireAuthentication, function (req, res) {
     var where = {
         userId: req.user.get('id'),
         parent: parseInt(req.params.parent, 10)
@@ -467,7 +574,48 @@ app.get('/v1/documents/:id', middleware.requireAuthentication, function (req, re
     });
 });
 //GET Search Document Names for {searchTerm}
+app.get('/v1/documents/search/:searchTerm', middleware.requireAuthentication, function (req, res) {
+    var searchTerm = unescape(req.params.searchTerm);
+
+    db.document.findAll({
+        limit: 10,
+        where: {
+          userId: req.user.get('id'),
+            name: db.Sequelize.where(db.Sequelize.fn('LOWER', db.Sequelize.col('name')), 'LIKE', '%' + searchTerm + '%')
+        }
+    }).then(function(documents){
+      res.json(documents);
+    }), function (e){
+        res.status(500).send();
+    };
+});
 //GET Search Document & Folder Names for {searchTerm}
+app.get('/v1/documents/folders/search/:searchTerm', middleware.requireAuthentication, function (req, res) {
+    var searchTerm = unescape(req.params.searchTerm);
+    var where = {
+      userId: req.user.get('id'),
+        name: db.Sequelize.where(db.Sequelize.fn('LOWER', db.Sequelize.col('name')), 'LIKE', '%' + searchTerm + '%')
+    }
+
+    db.document.findAll({
+        limit: 10,
+        where: where
+    }).then(function(documents){
+        db.folder.findAll({
+            limit: 10,
+            where: where
+        }).then(function(folders){
+            searchArr = {}
+            searchArr.documents = documents;
+            searchArr.folders = folders
+            res.json(searchArr);
+        }), function (e){
+            res.status(500).send();
+        };
+    }), function (e){
+        res.status(500).send();
+    };
+});
 //POST Add New Document
 app.post('/v1/documents', middleware.requireAuthentication, function(req, res) {
     var body = _.pick(req.body,"name", "parent");
@@ -498,11 +646,14 @@ app.post('/v1/documents', middleware.requireAuthentication, function(req, res) {
 //PUT Update Document (Name, Status, Parent, etc)
 app.put('/v1/documents/:id', middleware.requireAuthentication, function (req, res) {
     var documentId =  parseInt(req.params.id, 10);
-    var name = _.pick(req.name,"name");
+    var body = _.pick(req.body,"name", "parent");
     var attributes = {};
 
-    if (name.hasOwnProperty('name')){
+    if (body.hasOwnProperty('name')){
         attributes.name = body.name;
+    }
+    if (body.hasOwnProperty('parent')){
+        attributes.parent = body.parent;
     }
 
     db.document.findOne({
@@ -541,6 +692,34 @@ app.get('/v1/revisions/:documentId', middleware.requireAuthentication, function 
     });
 });
 //PUT Update Revision
+app.put('/v1/revisions/:id', middleware.requireAuthentication, function (req, res) {
+    var id =  parseInt(req.params.id, 10);
+    var body = _.pick(req.body,"name");
+    var attributes = {};
+
+    if (body.hasOwnProperty('name')){
+        attributes.name = body.name;
+    }
+
+    db.revision.findOne({
+        where: {
+            id: id,
+            userId: req.user.get('id')
+        }
+    }).then(function (revision) {
+        if (revision){
+          revision.update(attributes).then(function (revision) {
+                res.json(revision.toJSON());
+            }, function(e){
+                res.status(400).json(e);
+            });
+        } else {
+            res.status(404).send();
+        }
+    }, function (e) {
+        res.status(500).send();
+    });
+});
 //POST Add New Revision
 app.post('/v1/revisions/:documentId', middleware.requireAuthentication, function(req, res) {
     var documentId =  parseInt(req.params.documentId, 10);
@@ -640,157 +819,3 @@ db.sequelize.sync({}).then(function () {
         console.log('Express Listening on Port ' + PORT);
     });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//PUT Document
-//PUT Revision
-
-//Archive Document
-//Revert to previous Revision
-
-
-//GET Revision Status
-
-
-
-/*
-// GET /todos?complete=true
-app.get('/api/todos', middleware.requireAuthentication, function (req, res) {
-    var query =  req.query;
-    var where = {
-        userId: req.user.get('id')
-    };
-
-    if (query.hasOwnProperty("completed") && query.completed === "true"){
-        where.completed = true;
-    } else if (query.hasOwnProperty("completed") && query.completed === "false"){
-        where.completed = false;
-    }
-
-    if (query.hasOwnProperty('q') && query.q.length > 0){
-        where.description =  {
-            $like: '%' + query.q + '%'
-        };
-    }
-
-    db.todo.findAll({where: where}).then(function (todos){
-        res.json(todos);
-    }, function (e){
-        res.status(500).send();
-    });
-    //
-    //
-    // res.json(filteredTodos)
-});
-
-// GET /todos/id
-app.get('/api/todos/:id', middleware.requireAuthentication, function (req, res) {
-    var todoId =  parseInt(req.params.id, 10);
-
-    db.todo.findOne({
-        where: {
-            id: todoId,
-            userId: req.user.get('id')
-        }
-    }).then(function (todo) {
-        if (!!todo){
-            res.json(todo.toJSON());
-        } else {
-            res.status(404).send();
-        }
-    }, function (e) {
-        res.status(500).send();
-    });
-
-});
-
-//POST
-app.post('/api/todos', middleware.requireAuthentication, function(req,res) {
-    var body = _.pick(req.body,"description", "completed");
-
-    db.todo.create(body).then(function (todo) {
-
-        req.user.addTodo(todo).then(function () {
-            return todo.reload();
-        }).then(function (updatedTodo) {
-            res.json(todo.toJSON());
-        });
-    }, function(e){
-        res.status(400).json(e);
-    });
-});
-
-// DELETE
-app.delete('/api/todos/:id', middleware.requireAuthentication, function (req, res) {
-    var todoId =  parseInt(req.params.id, 10);
-
-    db.todo.destroy({
-        where: {
-            id: todoId,
-            userId: req.user.get('id')
-        }
-    }).then(function (rowsDeleted) {
-        if (rowsDeleted === 0){
-            res.status(404).json({
-                error: "no todo with that id"
-            });
-        } else {
-            res.status(204).send();
-        }
-    }, function (e) {
-        res.status(500).send()
-    });
-
-});
-
-//PUT
-app.put('/api/todos/:id', middleware.requireAuthentication, function (req, res) {
-    var todoId =  parseInt(req.params.id, 10);
-    var body = _.pick(req.body,"description", "completed");
-    var attributes = {};
-
-    if (body.hasOwnProperty('completed')){
-        attributes.completed = body.completed;
-    }
-
-    if (body.hasOwnProperty('description')){
-        attributes.description = body.description;
-    }
-
-    db.todo.findOne({
-        where: {
-            id: todoId,
-            userId: req.user.get('id')
-    }
-    }).then(function (todo) {
-        if (todo){
-            todo.update(attributes).then(function (todo) {
-                res.json(todo.toJSON());
-            }, function(e){
-                res.status(400).json(e);
-            });
-        } else {
-            res.status(404).send();
-        }
-    }, function (e) {
-        res.status(500).send();
-    });
-
-});
-
-*/
