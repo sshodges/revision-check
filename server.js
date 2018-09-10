@@ -392,7 +392,9 @@ app.put('/v1/users', middleware.requireAuthentication, function (req, res) {
         if (user){
             user.update(body).then(function (user) {
               res.json(user.toPublicJSON());
-              db.user.update(body.company,{
+              attributes = {};
+              attributes.company = body.company;
+              db.user.update(attributes,{
                 where : {
                   parentId: req.user.get('id')
                 }
