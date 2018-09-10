@@ -222,6 +222,7 @@ app.put('/v1/users/subuser/confirm/:confirmcode', function (req, res) {
 
     var attributes = {};
     attributes.confirmSubuserCode =  null;
+    attributes.active = true;
 
     db.user.findOne({
         where: {
@@ -268,6 +269,7 @@ app.put('/v1/users/confirm/:confirmcode', function (req, res) {
 
     var attributes = {};
     attributes.confirmEmailCode =  null;
+    attributes.active = true;
 
     db.user.findOne({
         where: {
@@ -390,7 +392,7 @@ app.put('/v1/users', middleware.requireAuthentication, function (req, res) {
         if (user){
             user.update(body).then(function (user) {
               res.json(user.toPublicJSON());
-              db.user.update(body,{
+              db.user.update(body.company,{
                 where : {
                   parentId: req.user.get('id')
                 }
