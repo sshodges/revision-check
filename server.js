@@ -64,8 +64,8 @@ app.post('/v1/users', function(req, res) {
           <p>Thank You</p>";
           // setup email data with unicode symbols
           let mailOptions = {
-              from: '"Sam Hodges" <sam@revisioncheck.com>', // sender address
-              to: 'sshodges@gmail.com', // list of receivers
+              from: '"Revision Check" <noreply@revisioncheck.com>', // sender address
+              to: body.email, // list of receivers
               subject: 'Welcome to Revision Check', // Subject line
               html: text // html body
           };
@@ -133,7 +133,7 @@ app.post('/v1/users/subuser', middleware.requireAuthentication, function(req, re
                 // setup email data with unicode symbols
                 let mailOptions = {
                     from: '"Revision Check" <noreply@revisioncheck.com>', // sender address
-                    to: 'sshodges@gmail.com', // list of receivers
+                    to: body.email, // list of receivers
                     subject: 'Invite to join Revision Check', // Subject line
                     html: text // html body
                 };
@@ -317,8 +317,8 @@ app.put('/v1/users/forgot-password', function(req, res) {
                     <p>Thank You</p>";
                     // setup email data with unicode symbols
                     let mailOptions = {
-                        from: '"Sam Hodges" <sam@revisioncheck.com>', // sender address
-                        to: 'sshodges@gmail.com', // list of receivers
+                        from: '"Revision Check" <noreply@revisioncheck.com>', // sender address
+                        to: body.email, // list of receivers
                         subject: 'Forgot Password Revision Check', // Subject line
                         html: text // html body
                     };
