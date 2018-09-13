@@ -15,6 +15,11 @@ module.exports = function (sequelize, DataTypes) {
           validate: {
               len: [1, 250]
           }
+        },
+        status: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: true
         }
     });
 };

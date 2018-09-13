@@ -29,7 +29,7 @@ let transporter = nodemailer.createTransport({
 //Cors Settings
 var corsOptions = {
     "origin": "*",
-    "methods": "GET,HEAD,PUT,PATCH,POST, DELETE",
+    "methods": "GET,HEAD,PUT,PATCH,POST, DELETE, OPTIONS",
     "preflightContinue": true,
     "optionsSuccessStatus": 204,
     "exposedHeaders":"Auth"
@@ -80,6 +80,9 @@ app.post('/v1/users', function(req, res) {
       res.json(user.toPublicJSON());
     }, function(e){
         res.status(400).json(e);
+        console.log(body);
+        console.log(e);
+
     });
 });
 //POST Login
@@ -565,7 +568,8 @@ app.get('/v1/documents/:id', middleware.requireAuthentication, function (req, re
     db.document.findOne({
         where: {
             id: documentId,
-            userId: req.user.get('id')
+            userId: req.user.get('id'),
+            status: true
         }
     }).then(function (document) {
         if (!!document){
