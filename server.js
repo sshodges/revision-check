@@ -21,11 +21,10 @@ let transporter = nodemailer.createTransport({
     auth: {
         user: "noreply@revisioncheck.com", // generated ethereal user
         pass: "RevisionCheck2018" // generated ethereal password
+    },
+    tls: {
+      rejectUnauthorized: false
     }
-    // ,
-    // tls: {
-    //   rejectUnauthorized: false
-    // }
 });
 //Cors Settings
 var corsOptions = {
