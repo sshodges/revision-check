@@ -10,7 +10,8 @@ if(env === 'production'){
 } else {
     sequelize = new Sequelize(undefined, undefined, undefined, {
         "dialect": "sqlite",
-        "storage": __dirname + "/data/dev-revision-check-api.sqlite"
+        "storage": __dirname + "/data/dev-revision-check-api.sqlite",
+        logging: false
     });
 }
 

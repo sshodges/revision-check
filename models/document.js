@@ -10,7 +10,6 @@ module.exports = function (sequelize, DataTypes) {
         },
         parent: {
           type: DataTypes.INTEGER,
-          allowNull: false,
           defaultValue: 0,
           validate: {
               len: [1, 250]
@@ -18,7 +17,6 @@ module.exports = function (sequelize, DataTypes) {
         },
         status: {
           type: DataTypes.BOOLEAN,
-          allowNull: false,
           defaultValue: true
         }
     });

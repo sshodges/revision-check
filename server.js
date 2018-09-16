@@ -8,6 +8,7 @@ var shortid = require('shortid32');
 var cors = require('cors');
 var generator = require('generate-password');
 const nodemailer = require('nodemailer');
+var async = require('async');
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -80,8 +81,6 @@ app.post('/v1/users', function(req, res) {
       res.json(user.toPublicJSON());
     }, function(e){
         res.status(400).json(e);
-        console.log(body);
-        console.log(e);
 
     });
 });
@@ -500,7 +499,6 @@ app.put('/v1/folders/:id', middleware.requireAuthentication, function (req, res)
         if (folder){
             folder.update(attributes).then(function (folder) {
                 res.json(folder.toJSON());
-                console.log(attributes);
             }, function(e){
                 res.status(400).json(e);
             });
@@ -511,24 +509,49 @@ app.put('/v1/folders/:id', middleware.requireAuthentication, function (req, res)
         res.status(500).send();
     });
 });
+//POST Get All Children Folders
+app.post('/v1/folders/children/:id', middleware.requireAuthentication, function (req, res){
+  var folderId =  parseInt(req.params.id, 10);
+  var ids = [folderId];
+  var types = ["folder"];
+  var count = 0;
+
+  async.whilst(function () {
+    return count <= ids.length;
+  },
+  function (next) {
+    where = {
+      parent: ids[count]
+    }
+    db.folder.findAll({where}).then(function(folders){
+      folders.forEach((folder)=>{
+        ids.push(folder.id);
+        types.push("folder");
+      });
+      count++;
+      next();
+    });
+  },
+  function (err) {
+    attributes = {}
+    attributes.ids = ids
+    res.json(ids);
+  });
+
+
+}, function (e) {
+    res.status(500).send();
+});
 //DELETE Delete Folder
 app.delete('/v1/folders/:id', middleware.requireAuthentication, function (req, res) {
-    var folderId =  parseInt(req.params.id, 10);
-
-    db.folder.destroy({
-        where: {
-            id: folderId,
-            userId: req.user.get('id')
-        }
-    }).then(function (folder) {
-        if (folder){
-            res.json({"message":"Folder deleted"});
-        } else {
-            res.status(404).send();
-        }
-    }, function (e) {
-        res.status(500).send();
-    });
+  var folderId =  parseInt(req.params.id, 10);
+  db.folder.destroy({
+    where: {
+      id: folderId
+    }
+  }).then(function (folder){
+    res.json({"message": "folder deleted"});
+  });
 });
 
 //DOCUMENTS --------------------------------------------------------------------
@@ -536,7 +559,8 @@ app.delete('/v1/folders/:id', middleware.requireAuthentication, function (req, r
 app.get('/v1/documents', middleware.requireAuthentication, function (req, res) {
     db.document.findAll({
         where: {
-            userId: req.user.get('id')
+            userId: req.user.get('id'),
+            status: true
         }
     }).then(function (documents) {
         if (!!documents){
@@ -552,7 +576,8 @@ app.get('/v1/documents', middleware.requireAuthentication, function (req, res) {
 app.get('/v1/documents/parent/:parent', middleware.requireAuthentication, function (req, res) {
     var where = {
         userId: req.user.get('id'),
-        parent: parseInt(req.params.parent, 10)
+        parent: parseInt(req.params.parent, 10),
+        status: true
     };
 
     db.document.findAll({where: where}).then(function (documents){
@@ -629,8 +654,6 @@ app.post('/v1/documents', middleware.requireAuthentication, function(req, res) {
     var body = _.pick(req.body,"name", "parent");
     var attributes = {};
 
-    console.log(body);
-
     if (body.hasOwnProperty('name')){
         attributes.name = body.name;
     }
@@ -647,14 +670,13 @@ app.post('/v1/documents', middleware.requireAuthentication, function(req, res) {
             res.json(document.toJSON());
         });
     }, function(e){
-      console.log(attributes)
         res.status(400).json(e);
     });
 });
 //PUT Update Document (Name, Status, Parent, etc)
 app.put('/v1/documents/:id', middleware.requireAuthentication, function (req, res) {
     var documentId =  parseInt(req.params.id, 10);
-    var body = _.pick(req.body,"name", "parent");
+    var body = _.pick(req.body,"name", "parent", "status");
     var attributes = {};
 
     if (body.hasOwnProperty('name')){
@@ -662,6 +684,9 @@ app.put('/v1/documents/:id', middleware.requireAuthentication, function (req, re
     }
     if (body.hasOwnProperty('parent')){
         attributes.parent = body.parent;
+    }
+    if (body.hasOwnProperty('status')){
+        attributes.status = body.status;
     }
 
     db.document.findOne({
@@ -683,6 +708,26 @@ app.put('/v1/documents/:id', middleware.requireAuthentication, function (req, re
         res.status(500).send();
     });
 });
+//PUT Archive Document with parent
+app.put('/v1/documents/parent/:parent', middleware.requireAuthentication, function (req, res) {
+    var parentId =  parseInt(req.params.parent, 10);
+    var attributes = {};
+    attributes.status = false;
+
+    db.document.update({
+      status: false,
+      parent: 0
+    }, {
+      where: {
+        parent: parentId
+      }
+    }).then(function() {
+      res.json({"message": "documents archived"});
+    }, function (e) {
+        res.status(500).send();
+    });
+});
+
 
 //REVISIONS --------------------------------------------------------------------
 //GET Revisions by :documentId
@@ -769,7 +814,6 @@ app.post('/v1/revisions/:documentId', middleware.requireAuthentication, function
                         plain: true
                     }).then(function (revisions) {
                         if (revisions){
-                            console.log('');
                         } else {
                             res.status(404).send();
                         }
