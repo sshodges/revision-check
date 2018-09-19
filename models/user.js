@@ -85,8 +85,13 @@ module.exports = function (sequelize, DataTypes) {
                        }
                     }).then(function (user) {
                         if (!user || !bcrypt.compareSync(body.password, user.get('password_hash'))){
-                            return reject();
+                            return reject('incorrect username or password');
                         }
+
+                        if (user.get('confirmEmailCode') || user.get('confirmSubuserCode')) {
+                            return reject('please verify your account');
+                        }
+
 
                         resolve(user);
 
