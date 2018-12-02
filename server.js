@@ -252,7 +252,7 @@ app.put('/v1/users/subuser/confirm/:confirmcode', function(req, res) {
 });
 //PUT Update Sub User (Delete, Company)
 app.put('/v1/users/subuser/:id', middleware.requireAuthentication, function(req, res) {
-  var body = _.pick(req.body, "company", "firstName", "lastName");
+  var body = _.pick(req.body, "company", "name");
 
   db.user.findOne({
     where: {
@@ -385,8 +385,8 @@ app.put('/v1/users/change-password', middleware.requireAuthentication, function(
 });
 //PUT Update User Details
 app.put('/v1/users', middleware.requireAuthentication, function(req, res) {
-  var body = _.pick(req.body, "company", "firstName", "lastName");
-
+  var body = _.pick(req.body, "company", "name");
+  console.log(body);
   db.user.findOne({
     where: {
       id: req.user.get('id')

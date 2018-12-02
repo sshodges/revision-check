@@ -22,10 +22,7 @@ module.exports = function (sequelize, DataTypes) {
         company: {
             type: DataTypes.STRING
         },
-        firstName: {
-            type: DataTypes.STRING
-        },
-        lastName: {
+        name: {
             type: DataTypes.STRING
         },
         active: {
@@ -147,7 +144,7 @@ module.exports = function (sequelize, DataTypes) {
         instanceMethods: {
             toPublicJSON: function () {
                 var json = this.toJSON();
-                return _.pick(json, 'id', 'parentId', 'active', 'firstName', 'lastName', 'company', 'email', 'createdAt', 'updatedAt');
+                return _.pick(json, 'id', 'parentId', 'active', 'name', 'company', 'email', 'createdAt', 'updatedAt');
             },
             generateToken: function (type) {
                 if(!_.isString(type)){
