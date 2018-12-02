@@ -47,7 +47,7 @@ app.get('/api', function(req, res) {
 //USERS ------------------------------------------------------------------------
 //POST Sign Up
 app.post('/v1/users', function(req, res) {
-  var body = _.pick(req.body, "email", "password");
+  var body = _.pick(req.body, "email", "password", "name", "company");
   body.confirmEmailCode = generator.generate({length: 15, numbers: true});
   db.user.create(body).then(function(user) {
 
