@@ -55,7 +55,7 @@ app.post('/v1/users', function(req, res) {
 
       var text = "Welcome to <strong>Revision Check!</strong>\
           <br><br>\
-          <p>Please click <a href='https://api.revisioncheck.com/v1/users/confirm/" + user.confirmEmailCode + "'>here</a> to verify your account</p>\
+          <p>Please click <a href='https://revisioncheck.com/verifylogin?confirmcode=" + user.confirmEmailCode + "'>here</a> to verify your account</p>\
           <p>Thank You</p>";
       // setup email data with unicode symbols
       let mailOptions = {
@@ -104,6 +104,7 @@ app.post('/v1/users/login', function(req, res) {
     }
   }, function(e) {
     res.status(401).json(e);
+    console.log(e);
   });
 });
 //POST Add Sub User
@@ -188,7 +189,7 @@ app.post('/v1/users/subuser/resend-email', middleware.requireAuthentication, fun
 
         var text = "You have been invited to join <strong>Revision Check</strong> by " + body.email + "\
             <br><br>\
-            <p>Please click <a href='https://api.revisioncheck.com/v1/subusers/confirm/" + user.confirmSubuserCode + "'>here</a> to verify your account</p>\
+            <p>Please click <a href='https://revisioncheck.com/newteammember.php?joinCode=9pS8HDHeh9ngsSM" + user.confirmSubuserCode + "'>here</a> to verify your account</p>\
             <p>Thank You</p>";
         // setup email data with unicode symbols
         let mailOptions = {
@@ -212,7 +213,7 @@ app.post('/v1/users/subuser/resend-email', middleware.requireAuthentication, fun
   }
 });
 //GET Retrieve Sub User by :id
-app.get('/v1/users/subuser/:id', middleware.requireAuthentication, function(req, res) {
+app.get('/v1/users/subuser/:id', function(req, res) {
   var where = {
     id: parseInt(req.params.id, 10),
     parentId: req.user.get('id')
@@ -227,10 +228,12 @@ app.get('/v1/users/subuser/:id', middleware.requireAuthentication, function(req,
 });
 //PUT Confirm Sub User Account
 app.put('/v1/users/subuser/confirm/:confirmcode', function(req, res) {
-
+  var body = _.pick(req.body, "name", "password");
   var attributes = {};
   attributes.confirmSubuserCode = null;
   attributes.active = true;
+  attributes.name = body.name;
+  attributes.password = body.password;
 
   db.user.findOne({
     where: {
