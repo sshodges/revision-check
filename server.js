@@ -315,15 +315,15 @@ app.put('/v1/users/forgot-password', function(req, res) {
       user.update(attributes).then(function(user) {
         nodemailer.createTestAccount((err, account) => {
 
-          var text = "Forgot Pass <strong>Revision Check!</strong>\
+          var text = "Forgot your password for <strong>Revision Check?</strong>\
                     <br><br>\
-                    <p>Please click <a href='https://api.revisioncheck.com/v1/users/forgot-password/" + user.confirmForgotCode + "'>here</a> to  </p>\
+                    <p>Please click <a href='https://revisioncheck.com/passwordreset?resetCode=" + user.confirmForgotCode + "'>here</a> to reset.</p>\
                     <p>Thank You</p>";
           // setup email data with unicode symbols
           let mailOptions = {
             from: '"Revision Check" <noreply@revisioncheck.com>', // sender address
             to: body.email, // list of receivers
-            subject: 'Forgot Password Revision Check', // Subject line
+            subject: 'Forgot Password | Revision Check', // Subject line
             html: text // html body
           };
 
@@ -347,8 +347,9 @@ app.put('/v1/users/forgot-password', function(req, res) {
 });
 //PUT Confirm Forgot Password
 app.put('/v1/users/forgot-password/:confirmcode', function(req, res) {
-
+  var body = _.pick(req.body, "password");
   var attributes = {};
+  attributes.password = body.password;
   attributes.confirmForgotCode = null;
 
   db.user.findOne({
