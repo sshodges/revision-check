@@ -390,7 +390,6 @@ app.put('/v1/users/change-password', middleware.requireAuthentication, function(
 //PUT Update User Details
 app.put('/v1/users', middleware.requireAuthentication, function(req, res) {
   var body = _.pick(req.body, "company", "name");
-  console.log(body);
   db.user.findOne({
     where: {
       id: req.user.get('id')
