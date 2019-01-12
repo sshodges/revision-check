@@ -606,13 +606,12 @@ app.get('/v1/documents/parent/:parent', middleware.requireAuthentication, functi
   });
 });
 //GET All Documents with :id
-app.get('/v1/documents/:id', middleware.requireAuthentication, function(req, res) {
+app.get('/v1/documents/:id', function(req, res) {
   var documentId = parseInt(req.params.id, 10);
 
   db.document.findOne({
     where: {
       id: documentId,
-      userId: req.user.get('id'),
       status: true
     }
   }).then(function(document) {
