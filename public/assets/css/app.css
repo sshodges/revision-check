@@ -1,0 +1,378 @@
+a:hover {
+    text-decoration: none;
+    cursor: pointer;
+    cursor: hand;
+}
+
+
+
+/* Left Bar */
+
+    #left-bar {
+        width: 20%;
+        height: 100vh;
+        background-color: #f4f4f4;
+        position: fixed;
+    }
+
+    .logo {
+        width: 70%;
+        margin-top: 10%;
+        margin-left: 10%;
+        background-color: transparent;
+    }
+
+    #left-nav {
+        margin-top: 30px;
+        font-weight: 600;
+        padding-left: 0;
+        margin-left: 15%;
+    }
+
+    #left-nav li {
+        list-style-type: none;
+        padding-bottom: 10px;
+        padding-left: 0;
+        margin-left: 0;
+    }
+
+    #left-nav a, #left-nav a:hover{
+        padding-left: 0;
+        margin-left: 0;
+        text-decoration: none;
+        color: #737373;
+    }
+
+    #left-nav a.active {
+        color: #337ab7;
+    }
+
+    #logout {
+        margin-top: 40px;
+    }
+
+/* Right Bar */
+
+    #right-bar {
+        margin-left: 20%;
+        transition: margin-left .5s;
+    }
+
+/* Search Bar */
+    #search-bar .navbar {
+        width: 80%;
+        margin-left: 20%;
+        padding-right: 2%;
+        border: none;
+        background-color: transparent;
+    }
+
+    #searchText {
+        border-radius: 20px;
+        padding-right: 40px;
+        width: 100px;
+    }
+
+    .fa-search {
+        color: #737373;
+        margin-left: -30px;
+    }
+
+    /* Breadcrumbs */
+
+    #breadcrumbRow {
+        margin-top: 40px;
+        position:relative;
+        background-color: transparent;
+    }
+
+    #back {
+        position: fixed;
+        margin-left: 10px;
+        margin-top: -80px;
+        z-index:10;
+        background-color: transparent;
+        width: 60%;
+
+    }
+
+    .breadcrumb {
+        text-align: center;
+        background-color: transparent;
+    }
+
+    #previousBread a {
+        cursor: pointer;
+        cursor: hand;
+    }
+
+    #currentBread {
+        font-weight: bold;
+    }
+
+    .breadcrumbLink:hover {
+        text-decoration: none;
+    }
+
+/* Content Bar */
+
+    #content-bar {
+        margin-top: 120px;
+        width: 100%;
+    }
+
+    /* Document Bar */
+
+    #documentrow {
+        z-index:1;
+        padding: 0;
+    }
+
+    #documentbar {
+        width: 85%;
+        margin-left: 5%;
+    }
+
+    /*#documentbar:first-child {*/
+        /*border-top: 1px rgba(150,150,150, 0.2) solid;*/
+    /*}*/
+
+    .item {
+        height:40px;
+        padding-left: 10px;
+        border-bottom: 1px rgba(150,150,150, 0.2) solid;
+        font-weight: 500;
+    }
+
+    .rev-item {
+        height:40px;
+        padding-left: 0;
+        padding-right: 0;
+        border-bottom: 1px rgba(150,150,150, 0.2) solid;
+        font-weight: 500;
+    }
+
+    .rev-item div, .sortable {
+        padding: 0;
+        padding-top: 5px;
+    }
+
+    .item:hover {
+        /*background-color: rgba(0,131,201, 0.05);*/
+        color: rgba(0,131,201, 1);
+        cursor: pointer;
+        cursor: hand;
+    }
+
+    .item a, .item a:hover {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .icon {
+        width: 25px;
+        display: inline-block;
+        margin-top: -5px;
+        margin-right: 15px;
+    }
+
+    .rev-icon {
+        width: 30%;
+        margin-top: 3px;
+        margin-left: 35%;
+    }
+
+    #revisionHeading {
+        font-size: 14px;
+        font-weight: 500;
+        margin: 15px 0;
+        padding: 0;
+        color: #737373;
+    }
+
+    #revisionHeading div {
+        padding: 0;
+    }
+
+    .revisionText {
+        padding-left: 10px;
+    }
+
+    .downloadQR {
+    }
+
+
+/* Add Bar */
+
+    #add-bar {
+        position: fixed;
+        width: 15%;
+        margin-left: 62%;
+        padding: 0;
+        padding-top: 50px;
+        z-index: 11;
+    }
+
+    .addButtons {
+        display: block;
+        list-style-type: none;
+        margin-bottom: 40px;
+        text-align: left;
+    }
+
+    .addButtons li {
+        margin-bottom: 10px;
+        width: 100%;
+        overflow: hidden;
+    }
+
+#qrHeading {
+    text-align: center;
+}
+
+#qrModal .modal-content {
+    text-align: center;
+}
+
+#qrButton {
+    margin-bottom: 20px;
+}
+
+#qrcode {
+    margin: auto 0;
+    text-align: center;
+}
+
+.downloadQR:hover {
+    cursor: pointer;
+    cursor: hand;
+}
+
+/* Loading */
+
+.modalLoading {
+    display:    none;
+    position:   fixed;
+    z-index:    1000;
+
+    height:     100%;
+    width:      100vw;
+    background: rgba( 255, 255, 255, .8 )
+                url('http://sampsonresume.com/labs/pIkfp.gif')
+                30% 20%
+                no-repeat;
+}
+
+#content-bar .loading {
+    overflow: hidden;
+}
+
+#content-bar .loading .modalLoading {
+    display: block;
+}
+
+
+
+
+
+
+
+
+@media only screen and (min-width: 991px) {
+    #add-bar {
+        width: 15%;
+    }
+
+    #documentbar {
+        width: 90%;
+    }
+}
+
+@media only screen and (max-width: 787px) {
+    #left-bar {
+        width: 100%;
+        height: auto;
+        position: static;
+    }
+
+    .logo {
+        width: 50%;
+        margin-left: 25%;
+        background-color: transparent;
+        margin-top: 10px;
+    }
+
+    #left-nav {
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    #left-nav li {
+        display: inline-block;
+        list-style-type: none;
+        padding-bottom: 20px;
+        padding-left: 0;
+        margin-right: 20px;
+        margin-top: 20px;
+    }
+
+    #left-nav a, #left-nav a:hover{
+        padding-left: 0;
+        margin-left: 0;
+        text-decoration: none;
+        color: #737373;
+    }
+
+    #logout {
+        margin-top: 40px;
+    }
+
+    #search-bar, .navbar-fixed-top .navbar .form-group {
+        position: static;
+        display: block;
+        border: none;
+        background-color: transparent;
+    }
+
+    #breadcrumbRow {
+        margin-top: 0;
+    }
+
+    #back {
+        width: 100%;
+        position: static;
+        margin-top: 0;
+    }
+
+    #right-bar {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    #add-bar {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 0;
+        position: static;
+    }
+
+    .addButtons{
+        padding-left: 0;
+        margin-bottom: 0;
+        text-align: center;
+    }
+
+    #add-bar li {
+        text-align: center;
+        display: inline-block;
+        margin-left: 10%;
+    }
+
+    #content-bar {
+        margin-top: 30px;
+    }
+
+    .blue {
+        color: #3a87ad;
+    }
+}

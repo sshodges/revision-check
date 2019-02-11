@@ -1,0 +1,10 @@
+RewriteEngine On
+RewriteOptions inherit
+Options +FollowSymlinks
+Options -Multiviews
+## hide .php extension
+## To externally redirect /dir/foo.php to /dir/foo
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^([^\.]+)$ $1.php [NC,L]
+DirectoryIndex index.php
