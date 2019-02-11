@@ -36,7 +36,7 @@ var corsOptions = {
 
 //USERS ------------------------------------------------------------------------
 app.use(bodyParser.json());
-app.use(express.static('public'));
+app.use(express.static(__dirname + '/public'));
 app.use(cors(corsOptions));
 
 //Main Api Route
