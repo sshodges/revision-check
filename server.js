@@ -221,17 +221,12 @@ app.post('/v1/users', function(req, res) {
       `;
 
 
+      // var text = "Welcome to <strong>Revision Check!</strong>\
+      //     <br><br>\
+      //     <p>Please click <a href='https://revisioncheck.com/verifylogin?confirmcode=" + user.confirmEmailCode + "'>here</a> to verify your account</p>\
+      //     <p>Thank You</p>";
 
 
-
-
-
-
-
-      var text = "Welcome to <strong>Revision Check!</strong>\
-          <br><br>\
-          <p>Please click <a href='https://revisioncheck.com/verifylogin?confirmcode=" + user.confirmEmailCode + "'>here</a> to verify your account</p>\
-          <p>Thank You</p>";
       // setup email data with unicode symbols
       let mailOptions = {
         from: '"Revision Check" <noreply@revisioncheck.com>', // sender address
