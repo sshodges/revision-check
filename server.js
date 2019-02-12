@@ -196,7 +196,7 @@ app.post('/v1/users', function(req, res) {
                                                       <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate;width:auto;" align="left" border="0">
                                                           <tbody>
                                                               <tr>
-                                                                  <td style="border:0px solid #000;border-radius:5px;color:#fff;cursor:auto;padding:10px 30px;" align="center" valign="middle" bgcolor="#4CAF50"><a href="https://revisioncheck.com/verifylogin?confirmcode=` + user.confirmEmailCode + ` style="text-decoration:none;background:#4CAF50;color:#fff;font-family:Arial, sans-serif;font-size:15px;font-weight:normal;line-height:120%;text-transform:none;margin:0px;" target="_blank">Confirm my email</a></td>
+                                                                  <td style="border:0px solid #000;border-radius:5px;color:#fff;cursor:auto;padding:10px 30px;" align="center" valign="middle" bgcolor="#4CAF50"><a href="https://revisioncheck.com/verifylogin?confirmcode=` + user.confirmEmailCode + `" style="text-decoration:none;background:#4CAF50;color:#fff;font-family:Arial, sans-serif;font-size:15px;font-weight:normal;line-height:120%;text-transform:none;margin:0px;" target="_blank">Confirm my email</a></td>
                                                               </tr>
                                                           </tbody>
                                                       </table>
