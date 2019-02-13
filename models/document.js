@@ -24,7 +24,7 @@ module.exports = function (sequelize, DataTypes) {
           defaultValue: false
         },
         documentPassword: {
-          type: DataTypes.STRING,
+          type: DataTypes.STRING
         }
     });
 };
