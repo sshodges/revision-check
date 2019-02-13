@@ -772,6 +772,7 @@ app.get('/v1/documents/parent/:parent', middleware.requireAuthentication, functi
   db.document.findAll({where: where}).then(function(documents) {
     res.json(documents);
   }, function(e) {
+    console.log(e);
     res.status(500).send();
   });
 });
