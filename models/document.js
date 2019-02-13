@@ -18,6 +18,13 @@ module.exports = function (sequelize, DataTypes) {
         status: {
           type: DataTypes.BOOLEAN,
           defaultValue: true
+        },
+        passwordProtected: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false
+        },
+        documentPassword: {
+          type: DataTypes.STRING,
         }
     });
 };
