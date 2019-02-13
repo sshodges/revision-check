@@ -1042,15 +1042,12 @@ app.get('/v1/documents/folders/search/:searchTerm', middleware.requireAuthentica
 
     db.revision.findOne({where: where}).then(function(revision) {
       res.json(revision);
-      console.log('scans: ' + revision.scans);
       var attributes = {};
       attributes.scans = revision.scans + 1;
       revision.update(attributes).then(function(revision) {
-        res.json(revision.toJSON());
       }, function(e) {
         res.status(400).json(e);
       });
-      
     }, function(e) {
       res.status(500).send();
     });
