@@ -22,6 +22,13 @@ module.exports = function (sequelize, DataTypes) {
         uniqueCode: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        scans: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0
+        },
+        notes: {
+            type: DataTypes.STRING,
         }
     });
 };
