@@ -28,7 +28,7 @@ module.exports = function (sequelize, DataTypes) {
             defaultValue: 0
         },
         notes: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING
         }
     });
 };
