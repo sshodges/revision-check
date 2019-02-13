@@ -1043,9 +1043,8 @@ app.get('/v1/documents/folders/search/:searchTerm', middleware.requireAuthentica
     db.revision.findOne({where: where}).then(function(revision) {
       res.json(revision);
       console.log('scans: ' + revision.scans);
-      console.log(revision);
       var attributes = {};
-      attributes.scans = revision.scan + 1;
+      attributes.scans = revision.scans + 1;
       revision.update(attributes).then(function(revision) {
         res.json(revision.toJSON());
       }, function(e) {
