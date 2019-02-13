@@ -19,11 +19,11 @@ module.exports = function (sequelize, DataTypes) {
           type: DataTypes.BOOLEAN,
           defaultValue: true
         },
-        passwordProtected: {
+        passwordprotected: {
           type: DataTypes.BOOLEAN,
           defaultValue: false
         },
-        documentPassword: {
+        documentpassword: {
           type: DataTypes.STRING
         }
     });
