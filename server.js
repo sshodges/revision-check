@@ -396,6 +396,29 @@ app.get('/v1/users/subuser/:id', function(req, res) {
   });
 
 });
+
+//GET Get Logged in User
+app.get('/v1/users', middleware.requireAuthentication, function(req, res) {
+
+  db.user.findOne({
+    where: {
+      id: req.user.get('id')
+    }
+  }).then(function(user) {
+    if (user) {
+      user.update(attributes).then(function(user) {
+        res.json(user.toPublicJSON());
+      }, function(e) {
+        res.status(400).json(e);
+      });
+    } else {
+      res.status(404).send();
+    }
+  }, function(e) {
+    res.status(500).send();
+  });
+});
+
 //PUT Confirm Sub User Account
 app.put('/v1/users/subuser/confirm/:confirmcode', function(req, res) {
   var body = _.pick(req.body, "name", "password");
