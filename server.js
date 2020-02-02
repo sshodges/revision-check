@@ -273,7 +273,7 @@ app.post('/v1/users/login', function(req, res) {
       res.status(401).send();
     }
   }, function(e) {
-    res.status(401).json(e);
+    res.status(401).json({message: e});
     console.log(e);
   });
 });
