@@ -611,6 +611,19 @@ app.put('/v1/users', middleware.requireAuthentication, function(req, res) {
 
 //FOLDERS ----------------------------------------------------------------------
 //GET All Folders with :parent
+app.get('/v1/folders', middleware.requireAuthentication, function(req, res) {
+  var query = req.query;
+  var where = {
+    userId: req.user.get('id'),
+  };
+
+  db.folder.findAll({where: where}).then(function(folders) {
+    res.json(folders);
+  }, function(e) {
+    res.status(500).send();
+  });
+});
+//GET All Folders with :parent
 app.get('/v1/folders/parent/:parent', middleware.requireAuthentication, function(req, res) {
   var query = req.query;
   var where = {
