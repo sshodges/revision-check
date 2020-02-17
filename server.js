@@ -17,7 +17,9 @@ const server = require('http').createServer(app);
 var io = require('socket.io')(server);
 
 io.on('connection', function(socket) {
-  socket.emit('connection:sid', socket.id);
+  socket.on('join', function(room) {
+    socket.join(room);
+  });
 });
 
 //GLOBAL VARS
