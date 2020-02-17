@@ -832,12 +832,7 @@ app.post('/v1/folders', middleware.requireAuthentication, function(req, res) {
           return folder.reload();
         })
         .then(function(updatedFolder) {
-          if (req.body.socketId) {
-            var socket = io.sockets.connected[req.body.socketId]; // Find socket by id
-            if (socket) {
-              socket.emit('folder', updatedFolder);
-            }
-          }
+          socket.to(req.user.get('id')).emit('folder', updatedFolder);
           res.json(updatedFolder.toJSON());
         });
     },
@@ -1114,12 +1109,7 @@ app.post('/v1/documents', middleware.requireAuthentication, function(req, res) {
           return document.reload();
         })
         .then(function(updatedDocument) {
-          if (req.body.socketId) {
-            var socket = io.sockets.connected[req.body.socketId]; // Find socket by id
-            if (socket) {
-              socket.emit('document', updatedDocument);
-            }
-          }
+          socket.to(req.user.get('id')).emit('document', updatedDocument);
           res.json(document.toJSON());
         });
     },
