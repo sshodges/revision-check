@@ -17,13 +17,13 @@ const server = require('http').createServer(app);
 var io = require('socket.io')(server);
 
 io.on('connection', function(socket) {
-  
+  socket.on('join', function(room) {
+    console.log('Join', room);
+    socket.join(room);
+  });
 });
 
-io.on('join', function(room) {
-  console.log('Join', room);
-  io.join(room);
-});
+
 
 //GLOBAL VARS
 //Nodemailer Settings
