@@ -9,13 +9,23 @@ var cors = require('cors');
 var generator = require('generate-password');
 const nodemailer = require('nodemailer');
 var async = require('async');
-var io = require('socket.io')();
-io.on('connection', function(socket) {
-  socket.emit('connection:sid', socket.id);
-});
 
 var app = express();
 var PORT = process.env.PORT || 3000;
+
+const server = require('http').createServer(app);
+var io = require('socket.io')(server, {
+  path: '/test',
+  serveClient: false,
+  // below are engine.IO options
+  pingInterval: 10000,
+  pingTimeout: 5000,
+  cookie: false
+});
+
+io.on('connection', function(socket) {
+  socket.emit('connection:sid', socket.id);
+});
 
 //GLOBAL VARS
 //Nodemailer Settings
@@ -1389,7 +1399,7 @@ app.get('/v1/revcodes/:revcode', cors(), function(req, res) {
 
 //Run App
 db.sequelize.sync({}).then(function() {
-  app.listen(PORT, function() {
+  server.listen(PORT, function() {
     console.log('Express Listening on Port ' + PORT);
   });
 });
