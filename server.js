@@ -11,7 +11,7 @@ const nodemailer = require('nodemailer');
 var async = require('async');
 var io = require('socket.io')(server);
 io.on('connection', function (socket) {
-   socket.emit('connection:sid', socket.id);
+   socket.emit('connection:sid', socket);
 });
 
 var app = express();
