@@ -832,7 +832,7 @@ app.post('/v1/folders', middleware.requireAuthentication, function(req, res) {
           return folder.reload();
         })
         .then(function(updatedFolder) {
-          socket.to(req.user.get('id')).emit('folder', updatedFolder);
+          socket.to(req.user.get('id').toString()).emit('folder', updatedFolder);
           res.json(updatedFolder.toJSON());
         });
     },
