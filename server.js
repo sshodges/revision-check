@@ -19,6 +19,7 @@ var io = require('socket.io')(server);
 io.on('connection', function(socket) {
   socket.on('join', function(room) {
     socket.join(room);
+    console.log('Join', room);
   });
 });
 
@@ -834,6 +835,7 @@ app.post('/v1/folders', middleware.requireAuthentication, function(req, res) {
           return folder.reload();
         })
         .then(function(updatedFolder) {
+          console.log('Broadcast', req.user.get('id').toString());
           io.to(req.user.get('id').toString()).emit('folder', updatedFolder);
           res.json(updatedFolder.toJSON());
         });
