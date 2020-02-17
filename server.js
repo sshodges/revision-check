@@ -9,6 +9,10 @@ var cors = require('cors');
 var generator = require('generate-password');
 const nodemailer = require('nodemailer');
 var async = require('async');
+var io = require('socket.io')(server);
+io.on('connection', function (socket) {
+   socket.emit('connection:sid', socket.id);
+});
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -610,7 +614,7 @@ app.put('/v1/users', middleware.requireAuthentication, function(req, res) {
 });
 
 //FOLDERS ----------------------------------------------------------------------
-//GET All Folders with :parent
+//GET All Folders
 app.get('/v1/folders', middleware.requireAuthentication, function(req, res) {
   var query = req.query;
   var where = {
@@ -682,6 +686,12 @@ app.post('/v1/folders', middleware.requireAuthentication, function(req, res) {
     req.user.addFolder(folder).then(function() {
       return folder.reload();
     }).then(function(updatedFolder) {
+      if (req.body.socketId) {
+        var socket = io.sockets.connected[req.body.socketId]; // Find socket by id
+        if (socket) {
+           socket.emit('folder', updatedFolder);
+        }
+     }
       res.json(updatedFolder.toJSON());
     });
   }, function(e) {
@@ -888,6 +898,12 @@ app.get('/v1/documents/folders/search/:searchTerm', middleware.requireAuthentica
       req.user.addDocument(document).then(function() {
         return document.reload();
       }).then(function(updatedDocument) {
+        if (req.body.socketId) {
+          var socket = io.sockets.connected[req.body.socketId]; // Find socket by id
+          if (socket) {
+             socket.emit('document', updatedDocument);
+          }
+       }
         res.json(document.toJSON());
       });
     }, function(e) {

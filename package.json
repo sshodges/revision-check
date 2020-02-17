@@ -28,8 +28,8 @@
     "random-hash": "^4.0.1",
     "sequelize": "^3.5.1",
     "shortid32": "^0.1.1",
+    "socket.io": "^2.3.0",
     "underscore": "^1.8.3"
   },
-  "devDependencies": {
-  }
+  "devDependencies": {}
 }
