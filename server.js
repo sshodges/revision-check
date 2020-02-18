@@ -962,17 +962,16 @@ app.get('/v1/documents/folders', middleware.requireAuthentication, function(
 
   db.document.findAll({ where: where }).then(function(documents) {
     db.folder.findAll({ where: where }).then(function(folders) {
-      documents.forEach(function(itm) {
-        itm.type = 'document';
-      });
+      for (var i = 0, len = documents.length; i < len; i++) {
+        documents[i].type = 'document';
+      }
 
-      folders.forEach(function(itm) {
-        itm.type = 'folder';
-      });
+      for (var i = 0, len = folders.length; i < len; i++) {
+        folders[i].type = 'folder';
+      }
 
       var data = folders.concat(documents);
-      var room = md5(req.user.get('id'));
-      io.sockets.in(room).emit('all items', data);
+
       res.json(data);
     }),
       function(e) {
