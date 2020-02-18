@@ -962,8 +962,8 @@ app.get('/v1/documents/folders', middleware.requireAuthentication, function(
 
   db.document.findAll({ where: where }).then(function(documents) {
     db.folder.findAll({ where: where }).then(function(folders) {
-      documents.map(obj => ({ ...obj, type: 'document' }));
-      folders.map(obj => ({ ...obj, type: 'folder' }));
+      documents = documents.map(obj => ({ ...obj, type: 'document' }));
+      folders = folders.map(obj => ({ ...obj, type: 'folder' }));
       var data = folders.concat(documents);
       var room = md5(req.user.get('id'));
       io.sockets.in(room).emit('all items', data);
