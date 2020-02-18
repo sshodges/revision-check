@@ -9,6 +9,7 @@ var cors = require('cors');
 var generator = require('generate-password');
 const nodemailer = require('nodemailer');
 var async = require('async');
+var md5 = require('md5');
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -17,10 +18,10 @@ const server = require('http').createServer(app);
 var io = require('socket.io')(server);
 
 io.on('connection', function(socket) {
-  socket.on('join', function(room) {
-    console.log('Join', room);
-    socket.join(room);
-  });
+  socket.emit('connection:sid', socket.id);
+  socket.on('join', function(room){
+    socket.join(room)
+  })
 });
 
 
@@ -837,8 +838,8 @@ app.post('/v1/folders', middleware.requireAuthentication, function(req, res) {
           return folder.reload();
         })
         .then(function(updatedFolder) {
-          console.log('Broadcast', req.user.get('id').toString());
-          io.to(req.user.get('id').toString()).emit('folder', updatedFolder);
+          var room = md5(req.user.get('id'));
+          io.sockets.in(room).emit('folder', updatedFolder)
           res.json(updatedFolder.toJSON());
         });
     },
