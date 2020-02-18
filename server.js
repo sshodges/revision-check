@@ -15,7 +15,9 @@ var app = express();
 var PORT = process.env.PORT || 3000;
 
 const server = require('http').createServer(app);
-var io = require('socket.io')(server);
+var io = require('socket.io')(server, {
+  pingTimeout: 60000,
+});
 
 io.on('connection', function(socket) {
   socket.emit('connection:sid', socket.id);
