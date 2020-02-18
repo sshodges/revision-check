@@ -839,7 +839,7 @@ app.post('/v1/folders', middleware.requireAuthentication, function(req, res) {
         })
         .then(function(updatedFolder) {
           var room = md5(req.user.get('id'));
-          io.sockets.in(room).emit('folder', updatedFolder)
+          io.sockets.in(room).emit('add folder', updatedFolder.toJSON())
           res.json(updatedFolder.toJSON());
         });
     },
@@ -876,6 +876,8 @@ app.put('/v1/folders/:id', middleware.requireAuthentication, function(
         if (folder) {
           folder.update(attributes).then(
             function(folder) {
+              var room = md5(req.user.get('id'));
+              io.sockets.in(room).emit('update folder', folder.toJSON())
               res.json(folder.toJSON());
             },
             function(e) {
@@ -942,6 +944,8 @@ app.delete('/v1/folders/:id', middleware.requireAuthentication, function(
       }
     })
     .then(function(folder) {
+      var room = md5(req.user.get('id'));
+      io.sockets.in(room).emit('delete folder', folder)
       res.json({ message: 'folder deleted' });
     });
 });
@@ -1116,7 +1120,8 @@ app.post('/v1/documents', middleware.requireAuthentication, function(req, res) {
           return document.reload();
         })
         .then(function(updatedDocument) {
-          socket.to(req.user.get('id')).emit('document', updatedDocument);
+          var room = md5(req.user.get('id'));
+          io.sockets.in(room).emit('add document', document.toJSON())
           res.json(document.toJSON());
         });
     },
@@ -1156,6 +1161,8 @@ app.put('/v1/documents/:id', middleware.requireAuthentication, function(
         if (document) {
           document.update(attributes).then(
             function(document) {
+              var room = md5(req.user.get('id'));
+              io.sockets.in(room).emit('update document', document.toJSON())
               res.json(document.toJSON());
             },
             function(e) {
@@ -1193,7 +1200,9 @@ app.put(
         }
       )
       .then(
-        function() {
+        function(document) {
+          var room = md5(req.user.get('id'));
+          io.sockets.in(room).emit('archive document', document.toJSON())
           res.json({ message: 'documents archived' });
         },
         function(e) {
@@ -1249,6 +1258,8 @@ app.put('/v1/revisions/:id', middleware.requireAuthentication, function(
         if (revision) {
           revision.update(attributes).then(
             function(revision) {
+              var room = md5(req.user.get('id'));
+              io.sockets.in(room).emit('update revision', revision.toJSON())
               res.json(revision.toJSON());
             },
             function(e) {
@@ -1317,6 +1328,8 @@ app.post(
                   )
                   .then(function(revisions) {
                     if (revisions) {
+                      var room = md5(req.user.get('id'));
+                      io.sockets.in(room).emit('updated revisions', revisions)
                     } else {
                       res.status(404).send();
                     }
@@ -1331,6 +1344,8 @@ app.post(
                         return revision.reload();
                       })
                       .then(function(updatedRevision) {
+                        var room = md5(req.user.get('id'));
+                        io.sockets.in(room).emit('add revision', revision.toJSON())
                         res.json(revision.toJSON());
                       });
                   },
