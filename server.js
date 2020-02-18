@@ -16,17 +16,15 @@ var PORT = process.env.PORT || 3000;
 
 const server = require('http').createServer(app);
 var io = require('socket.io')(server, {
-  pingTimeout: 60000,
+  pingTimeout: 60000
 });
 
 io.on('connection', function(socket) {
   socket.emit('connection:sid', socket.id);
-  socket.on('join', function(room){
-    socket.join(room)
-  })
+  socket.on('join', function(room) {
+    socket.join(room);
+  });
 });
-
-
 
 //GLOBAL VARS
 //Nodemailer Settings
@@ -841,7 +839,7 @@ app.post('/v1/folders', middleware.requireAuthentication, function(req, res) {
         })
         .then(function(updatedFolder) {
           var room = md5(req.user.get('id'));
-          io.sockets.in(room).emit('add folder', updatedFolder.toJSON())
+          io.sockets.in(room).emit('add folder', updatedFolder.toJSON());
           res.json(updatedFolder.toJSON());
         });
     },
@@ -879,7 +877,7 @@ app.put('/v1/folders/:id', middleware.requireAuthentication, function(
           folder.update(attributes).then(
             function(folder) {
               var room = md5(req.user.get('id'));
-              io.sockets.in(room).emit('update folder', folder.toJSON())
+              io.sockets.in(room).emit('update folder', folder.toJSON());
               res.json(folder.toJSON());
             },
             function(e) {
@@ -947,12 +945,38 @@ app.delete('/v1/folders/:id', middleware.requireAuthentication, function(
     })
     .then(function(folder) {
       var room = md5(req.user.get('id'));
-      io.sockets.in(room).emit('delete folder', folder)
+      io.sockets.in(room).emit('delete folder', folder);
       res.json({ message: 'folder deleted' });
     });
 });
 
 //DOCUMENTS --------------------------------------------------------------------
+//GET Search Document & Folder
+app.get('/v1/documents/folders', middleware.requireAuthentication, function(
+  req,
+  res
+) {
+  var where = {
+    userId: req.user.get('id')
+  };
+
+  db.document.findAll({ where: where }).then(function(documents) {
+    db.folder.findAll({ where: where }).then(function(folders) {
+      documents.map(obj => ({ ...obj, type: 'document' }));
+      folders.map(obj => ({ ...obj, type: 'folder' }));
+      var data = folders.concat(documents);
+      var room = md5(req.user.get('id'));
+      io.sockets.in(room).emit('all items', data);
+      res.json(data);
+    }),
+      function(e) {
+        res.status(500).send();
+      };
+  }),
+    function(e) {
+      res.status(500).send();
+    };
+});
 //GET All DOCUMENTS
 app.get('/v1/documents', middleware.requireAuthentication, function(req, res) {
   db.document
@@ -1123,7 +1147,7 @@ app.post('/v1/documents', middleware.requireAuthentication, function(req, res) {
         })
         .then(function(updatedDocument) {
           var room = md5(req.user.get('id'));
-          io.sockets.in(room).emit('add document', document.toJSON())
+          io.sockets.in(room).emit('add document', document.toJSON());
           res.json(document.toJSON());
         });
     },
@@ -1164,7 +1188,7 @@ app.put('/v1/documents/:id', middleware.requireAuthentication, function(
           document.update(attributes).then(
             function(document) {
               var room = md5(req.user.get('id'));
-              io.sockets.in(room).emit('update document', document.toJSON())
+              io.sockets.in(room).emit('update document', document.toJSON());
               res.json(document.toJSON());
             },
             function(e) {
@@ -1204,7 +1228,7 @@ app.put(
       .then(
         function(document) {
           var room = md5(req.user.get('id'));
-          io.sockets.in(room).emit('archive document', document.toJSON())
+          io.sockets.in(room).emit('archive document', document.toJSON());
           res.json({ message: 'documents archived' });
         },
         function(e) {
@@ -1261,7 +1285,7 @@ app.put('/v1/revisions/:id', middleware.requireAuthentication, function(
           revision.update(attributes).then(
             function(revision) {
               var room = md5(req.user.get('id'));
-              io.sockets.in(room).emit('update revision', revision.toJSON())
+              io.sockets.in(room).emit('update revision', revision.toJSON());
               res.json(revision.toJSON());
             },
             function(e) {
@@ -1331,7 +1355,7 @@ app.post(
                   .then(function(revisions) {
                     if (revisions) {
                       var room = md5(req.user.get('id'));
-                      io.sockets.in(room).emit('updated revisions', revisions)
+                      io.sockets.in(room).emit('updated revisions', revisions);
                     } else {
                       res.status(404).send();
                     }
@@ -1347,7 +1371,9 @@ app.post(
                       })
                       .then(function(updatedRevision) {
                         var room = md5(req.user.get('id'));
-                        io.sockets.in(room).emit('add revision', revision.toJSON())
+                        io.sockets
+                          .in(room)
+                          .emit('add revision', revision.toJSON());
                         res.json(revision.toJSON());
                       });
                   },
