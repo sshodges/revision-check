@@ -960,8 +960,10 @@ app.get('/v1/documents/folders', middleware.requireAuthentication, function(
     userId: req.user.get('id')
   };
   
-  var documentWhere = where;
-  documentWhere.status = true;
+  var documentWhere = {
+    userId: req.user.get('id'),
+    status: true
+  };
 
   db.document.findAll({ where: documentWhere }).then(function(documents) {
     db.folder.findAll({ where: where }).then(function(folders) {
