@@ -959,8 +959,11 @@ app.get('/v1/documents/folders', middleware.requireAuthentication, function(
   var where = {
     userId: req.user.get('id')
   };
+  
+  var documentWhere = where;
+  documentWhere.status = true;
 
-  db.document.findAll({ where: where }).then(function(documents) {
+  db.document.findAll({ where: documentWhere }).then(function(documents) {
     db.folder.findAll({ where: where }).then(function(folders) {
       for (var i = 0, len = documents.length; i < len; i++) {
         documents[i].type = 'document';
