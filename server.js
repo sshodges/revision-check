@@ -945,7 +945,7 @@ app.delete('/v1/folders/:id', middleware.requireAuthentication, function(
     })
     .then(function(folder) {
       var room = md5(req.user.get('id'));
-      io.sockets.in(room).emit('delete folder', folder);
+      io.sockets.in(room).emit('delete folder', folderId);
       res.json({ message: 'folder deleted' });
     });
 });
