@@ -1260,7 +1260,7 @@ app.get('/v1/revisions/:documentId', middleware.requireAuthentication, function(
     userId: req.user.get('id')
   };
 
-  db.revision.findAll({ where: where }).then(
+  db.revision.findAll({ where: where, order: [['id', 'DESC']] }).then(
     function(revisions) {
       res.json(revisions);
     },
