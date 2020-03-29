@@ -1318,7 +1318,7 @@ app.post(
   function(req, res) {
     var documentId = parseInt(req.params.documentId, 10);
     var uCode = shortid.generate();
-    var body = _.pick(req.body, 'name');
+    var body = _.pick(req.body, 'name', 'note');
     var attributes = {};
 
     if (body.hasOwnProperty('name')) {
@@ -1326,6 +1326,10 @@ app.post(
       attributes.latest = true;
       attributes.documentId = documentId;
       attributes.uniqueCode = uCode;
+    }
+    
+    if (body.hasOwnProperty('note')) {
+      attributes.note = body.note;
     }
 
     //Check if Revision name exists
