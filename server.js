@@ -1329,7 +1329,7 @@ app.post(
     }
     
     if (body.hasOwnProperty('note')) {
-      attributes.note = body.note;
+      attributes.notes = body.note;
     }
 
     //Check if Revision name exists
