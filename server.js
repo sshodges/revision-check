@@ -1365,7 +1365,7 @@ app.post(
                   .then(function(revisions) {
                     if (revisions) {
                       var room = md5(req.user.get('id'));
-                      io.sockets.in(room).emit('updated revisions', revisions);
+                      io.sockets.in(room).emit('updated revision', revisions);
                     } else {
                       res.status(404).send();
                     }
