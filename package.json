@@ -25,7 +25,7 @@
     "nodemailer": "^4.6.8",
     "pg": "^4.4.1",
     "pg-hstore": "^2.3.2",
-    "pug": "^2.0.3",
+    "pug": "^3.0.1",
     "random-hash": "^4.0.1",
     "sequelize": "^3.5.1",
     "shortid32": "^0.1.1",
