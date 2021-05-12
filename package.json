@@ -22,7 +22,7 @@
     "generate-password": "^1.4.0",
     "jsonwebtoken": "^5.0.5",
     "md5": "^2.2.1",
-    "nodemailer": "^4.6.8",
+    "nodemailer": "^6.4.16",
     "pg": "^4.4.1",
     "pg-hstore": "^2.3.2",
     "pug": "^2.0.3",
